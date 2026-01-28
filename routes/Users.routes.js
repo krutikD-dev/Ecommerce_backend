@@ -1,75 +1,29 @@
 import express from 'express'
-import { createUser, deleteUser, getUser } from '../services/user.service.js'
+import { create_user, delete_user, get_users } from '../controllers/user.controller.js'
+import { become_seller } from '../controllers/seller.controller.js'
+import { createCategoryController } from '../controllers/category.controller.js'
+import { addProductController, getProductByIdController } from '../controllers/product.controller.js'
+import { authenticate_user_controller } from '../controllers/auth.controller.js'
+import { authenticate } from '../middleware/auth.middleware.js'
+import { authorize } from '../middleware/authorize.middleware.js'
+
 
 const Router = express.Router()
 
-Router.post('/create_user', async(req,res,next)=>{
-console.log("Post API got hit")
-try{
-    await createUser(req.body)
-    console.log("User Created Successfully!")
-    res.status(200).send({
-    'status':'200',
-    'success': true,
-    'message':"User Successfully Created!!"
-})
+Router.post('/login_user', authenticate_user_controller)
 
-}catch(err){
-    res.status(500).send({
-    'status':'500',
-    'success': false,
-    'message':"Something Went Wrong!!"
-})
-    console.error(err)
-}
-finally{
-    next()
-}
+Router.post('/create_user', create_user)
 
-})
+Router.delete('/delete_user/:id',authenticate, authorize('Admin','Seller') ,delete_user)
 
-Router.delete('/delete_user/:id',async(req,res,next)=>{
-    const {id}= req.params
+Router.get('/get_users',authenticate, authorize('Admin'),get_users)
 
-    try{
-    await deleteUser(id)
-    console.log("User deleted Successfully!")
-    res.status(200).send({
-    'status':'200',
-    'success': true,
-    'message':"User Successfully deleted!!"
-})
+Router.post('/users/:id/become-seller',authenticate, authorize('Admin','Customer'), become_seller)
 
-}catch(err){
-    res.status(404).send({
-    'status':'404',
-    'success': false,
-    'message':err.message
-})
-    console.error(err)
-}
-finally{
-    next()
-}
-})
+Router.post('/add_category',authenticate, authorize('Admin', 'Seller'), createCategoryController)
 
-Router.get('/get_users',async(req,res,next)=>{
-    try{
-    const users = await getUser()
-    res.status(200).send({
-    'status':'200',
-    'success': true,
-    'data':users
-})
+Router.post('/add_product',authenticate, authorize('Admin','Seller'), addProductController)
 
+Router.get('/product/:id',authenticate, authorize('Admin','Seller'), getProductByIdController)
 
-}catch(err){
-    res.status(404).send({
-    'status':'404',
-    'success': false,
-    'message':err.message
-})
-    console.error(err)
-}
-})
 export default Router

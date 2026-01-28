@@ -1,0 +1,32 @@
+import dotenv from 'dotenv'
+dotenv.config()
+import jwt from "jsonwebtoken";
+import { User } from "../models/user.model.js"
+import bcrypt from 'bcrypt'
+
+
+export  const loginUser = async(email,password)=>{
+    const user = await User.findOne({where:{email}})
+    // console.log(user)
+
+    if (!user) {
+    throw new Error('Invalid email or password');
+  }
+
+  const isMatch = await bcrypt.compare(password,user.password)
+
+  if(!isMatch){
+        throw new Error('Invalid email or password');
+  }
+
+  const token = jwt.sign(
+    {
+        id:user.id,
+        role:user.role
+    },
+    process.env.JWT_SECRET,
+    {expiresIn:'1d'}
+  )
+
+  return token
+}

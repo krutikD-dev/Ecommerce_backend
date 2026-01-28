@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "./db.js";
+import bcrypt from 'bcrypt';
+
 
 export const User = sequelize.define(
     'User',
@@ -21,8 +23,12 @@ export const User = sequelize.define(
             type: DataTypes.STRING,
             unique: true
         },
+        password:{
+            type: DataTypes.STRING,
+            allowNull:false
+        },
         role: {
-            type: DataTypes.ENUM('Customer', 'Seller'),
+            type: DataTypes.ENUM('Customer', 'Seller','Admin'),
             defaultValue: 'Customer',
             allowNull: false
         }
@@ -31,7 +37,13 @@ export const User = sequelize.define(
         tableName: 'User',
         paranoid: true
     },
-);
+)
+User.beforeCreate(async (user) => {
+  user.password = await bcrypt.hash(user.password, 10);
+});
 
-// `sequelize.define` also returns the model
-// console.log(User === sequelize.models.User); // true
+User.beforeUpdate(async (user) => {
+  if (user.changed('password')) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+});

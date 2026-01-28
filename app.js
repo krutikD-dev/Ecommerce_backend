@@ -3,7 +3,8 @@ dotenv.config()
 import express, { Router } from 'express'
 import userRoute from './routes/Users.routes.js'
 import {connectDB} from './models/db.js'
-import {User} from './models/user.model.js'
+import { sequelize } from './models/index.js'
+// import {User} from './models/user.model.js'
 const app = express()
 app.use(express.json())
 
@@ -11,7 +12,8 @@ const startServer = async () => {
   await connectDB();
 }
 
-User.sync()
+// User.sync()
+  await sequelize.sync()
 
 app.use('/api',userRoute)
 
